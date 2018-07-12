@@ -38,5 +38,7 @@ function Y = generateY(bus,line)
             Y(J,I)=Y(I,J);
         end
     end
+    
+    
 end
 
