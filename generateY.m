@@ -28,7 +28,7 @@ function Y = generateY(bus,line)
         end
         % K<0 变压器线路: Zt和Ym为折算到K侧的值,K在i侧
         if K<0
-            K=1/K;
+            K=-1/K;
         end
         % K>0 变压器支路: Zt和Ym为折算到i侧的值,K在j侧
         if (K~=0)

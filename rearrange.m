@@ -3,6 +3,7 @@ function [oribus, oriline] = rearrange(oribus, oriline)
 % 此处显示详细说明
     [nb,mb]=size(oribus);
     [nl,ml]=size(oriline);
+    global nodenum;
     global nSW;
     global nPV;
     global nPQ;
