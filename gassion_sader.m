@@ -58,14 +58,14 @@ for count=1:max1
     U_new=zeros(nPoint,1);
     theta_new=zeros(nPoint,1);
     
-    %采用同步迭代
+    %采用异步迭代
     %首先处理PQ节点
     for i = 1:nPQ
         Ui = U(i,1) * exp(j*theta(i,1));
         sumYU = 0;
         for k = 1:nPoint
             if k < i
-                sumYU = sumYU + Y(i,k)*U_new(k,1) * exp(j*theta(k,1));
+                sumYU = sumYU + Y(i,k)*U_new(k,1) * exp(j*theta_new(k,1));
             elseif k > i
                 sumYU = sumYU + Y(i,k)*U(k,1) * exp(j*theta(k,1));
             end
@@ -89,7 +89,9 @@ for count=1:max1
         Ui = U(i,1) * exp(j*theta(i,1));
         sumYU = 0;
         for k = 1:nPoint
-            if k ~= i
+            if k < i
+                sumYU = sumYU + Y(i,k)*U_new(k,1) * exp(j*theta_new(k,1));
+            elseif k > i
                 sumYU = sumYU + Y(i,k)*U(k,1) * exp(j*theta(k,1));
             end
         end
