@@ -6,15 +6,15 @@ function Y = newton_lafton(dfile)
     lfile =length(dfile);
     % strip off .m
     eval(dfile(1:lfile-2));
-
-    % [dfile,pathname]=uigetfile('*.m','Select Data File');
-    % if pathname == 0
-    %     error(' you must select a valid data file')
-    % else
-    %     lfile =length(dfile);
-    %     % strip off .m
-    %     eval(dfile(1:lfile-2));
-    % end
+% 
+%     [dfile,pathname]=uigetfile('*.m','Select Data File');
+%     if pathname == 0
+%         error(' you must select a valid data file')
+%     else
+%         lfile =length(dfile);
+%         % strip off .m
+%         eval(dfile(1:lfile-2));
+%     end
 
     global nodenum;
     global nSW;

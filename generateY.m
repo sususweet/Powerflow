@@ -33,6 +33,8 @@ function Y = generateY(bus,line)
         end
         % K>0 变压器支路: Zt和Ym为折算到i侧的值,K在j侧
         if (K~=0)
+            % K = 1 短路计算
+            % K=1;
             Y(I,I)=Y(I,I)+Yt+Ym;
             Y(J,J)=Y(J,J)+Yt/K/K;
             Y(I,J)=Y(I,J)-Yt/K;
