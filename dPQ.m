@@ -14,7 +14,7 @@ function [deltaP,deltaQ] =dPQ(Y,bus)
     deltaP = zeros(nPoint-nSW,1);
     deltaQ = zeros(nPQ,1);
     
-    %¿ªÊ¼¼ÆËãÎó²îÏòÁ¿
+    %å¼€å§‹è®¡ç®—è¯¯å·®å‘é‡
     for row=1:nPoint-nSW
         sum = 0;
         for loop = 1:nPoint
@@ -30,5 +30,5 @@ function [deltaP,deltaQ] =dPQ(Y,bus)
         end
         deltaQ(row,1)=Q(row,1)-sum;
     end
-    %Îó²îÏòÁ¿¼ÆËãÍê³É
+    %è¯¯å·®å‘é‡è®¡ç®—å®Œæˆ
 end

@@ -1,146 +1,188 @@
-clear;
+function Y = newton_lafton(dfile)
+    max1=100;
+    eps1=1.0e-10;
+    eps2=1.0e-10;
 
-max1=100;
-eps1=1.0e-10;
-eps2=1.0e-10;
-
-[dfile,pathname]=uigetfile('*.m','Select Data File');
-if pathname == 0
-    error(' you must select a valid data file')
-else
     lfile =length(dfile);
     % strip off .m
     eval(dfile(1:lfile-2));
-end
 
-global nodenum;
-global nSW;
-global nPV;
-global nPQ;
-global U;
-global theta;
-global P;
-global Q;
+    % [dfile,pathname]=uigetfile('*.m','Select Data File');
+    % if pathname == 0
+    %     error(' you must select a valid data file')
+    % else
+    %     lfile =length(dfile);
+    %     % strip off .m
+    %     eval(dfile(1:lfile-2));
+    % end
 
-%½ÚµãÖØĞÂ±àºÅ¿ªÊ¼
-[bus, line] = rearrange(bus, line);
-%½ÚµãÖØĞÂ±àºÅ½áÊø
-filename = ['.\output_', dfile, '.dat'];
-myf=fopen(filename,'w');
-
-Y= generateY(bus,line);
-
-fprintf(myf, '--------------½Úµãµ¼ÄÉ¾ØÕó----------\n');
-[count_i, count_j] = size(Y);
-for i=1:count_i
-    for k=1:count_j
-        fprintf(myf, ' %9.6f+j%10.6f ', real(Y(i,k)),imag(Y(i,k)));
-    end
-    fprintf(myf, '\n');
-end
-
-nPoint = length(Y);
-
-U=zeros(nPoint,1);
-theta=zeros(nPoint,1);
-for i=1:nPoint
-    U(i)=bus(i,2);
-    theta(i)=bus(i,3);
-    P(i,1) = bus(i,4);
-    Q(i,1) = bus(i,5);
-end
-
-count = 0;
-for count=1:max1
-    fprintf(myf, '\n');
-    fprintf(myf, '--------------µÚ%d´Îµü´úµÄ½á¹û----------\n', count);
+    global nodenum;
+    global nSW;
+    global nPV;
+    global nPQ;
+    global U;
+    global theta;
+    global P;
+    global Q;
+    tic;
     
-    [deltaP,deltaQ] = dPQ(Y,bus);
-    J=form_jac(Y,bus);
-    
-    fprintf(myf, '-------------µÚ%d´Îµü´úµÄÑÅ¿É±È¾ØÕóJ----------\n', count);
-    [count_i, count_j] = size(J);
+    %èŠ‚ç‚¹é‡æ–°ç¼–å·å¼€å§‹
+    [bus, line] = rearrange(bus, line);
+    %èŠ‚ç‚¹é‡æ–°ç¼–å·ç»“æŸ
+    filename = ['./result/output_', dfile, '.dat'];
+    myf=fopen(filename,'w','n','UTF-8');
+
+    filename_graph = ['./result/output_graph_', dfile, '.dat'];
+    myf_graph=fopen(filename_graph,'w','n','UTF-8');
+
+    Y= generateY(bus,line);
+    %è¾“å‡ºèŠ‚ç‚¹å¯¼çº³çŸ©é˜µ
+    fprintf(myf, '--------------Node Admittance Matrix----------\n');
+    [count_i, count_j] = size(Y);
     for i=1:count_i
         for k=1:count_j
-            fprintf(myf, '%11.6f  ', J(i,k));
+            fprintf(myf, ' %9.6f+j%10.6f ', real(Y(i,k)),imag(Y(i,k)));
         end
         fprintf(myf, '\n');
     end
-    
+
+    nPoint = length(Y);
+
+    U=zeros(nPoint,1);
+    theta=zeros(nPoint,1);
+    for i=1:nPoint
+        U(i)=bus(i,2);
+        theta(i)=bus(i,3);
+        P(i,1) = bus(i,4);
+        Q(i,1) = bus(i,5);
+    end
+
+    count = 0;
+    for count=1:max1
+        fprintf(myf, '\n');
+        %ç¬¬xæ¬¡è¿­ä»£çš„ç»“æœ
+        fprintf(myf, '--------------The results of the %d iteration----------\n', count);
+
+        [deltaP,deltaQ] = dPQ(Y,bus);
+        J=form_jac(Y,bus);
+
+        %ç¬¬xæ¬¡è¿­ä»£çš„é›…å¯æ¯”çŸ©é˜µJ
+        fprintf(myf, '-------------The Jacobi matrix J of the %d iteration----------\n', count);
+        [count_i, count_j] = size(J);
+        for i=1:count_i
+            for k=1:count_j
+                fprintf(myf, '%11.6f  ', J(i,k));
+            end
+            fprintf(myf, '\n');
+        end
+
+        %ç¬¬xæ¬¡è¿­ä»£çš„åŠŸç‡åå·®dPå’ŒdQ
+        fprintf(myf, '\n');
+        fprintf(myf, '-------------The power deviation dP and dQ of the%d iteration----------\n', count);
+        for i=1: length(deltaP)
+            fprintf(myf, 'dP%d   %13.6e\n', i, deltaP(i,1));
+        end
+        for i=1: length(deltaQ)
+            fprintf(myf, 'dQ%d   %13.6e\n', i, deltaQ(i,1));
+        end
+
+        deltaPQ=[deltaP;deltaQ];
+        deltaUtheta = J^(-1)*deltaPQ;
+
+        deltatheta = deltaUtheta(1:nPoint-nSW,:);
+        deltaU = deltaUtheta(nPoint:nPoint+nPQ-nSW,:);
+
+        %ç¬¬xæ¬¡è¿­ä»£çš„èŠ‚ç‚¹ç›¸è§’å’Œç”µå‹çš„åå·®dx
+        fprintf(myf, '\n');
+        fprintf(myf, '-------------The node phase angle and voltage deviation dX of the %d iteration----------\n', count);
+        for i=1: length(deltatheta)
+            fprintf(myf, 'dang%d   %13.6e\n', i, deltatheta(i,1));
+        end
+        for i=1: length(deltaU)
+            fprintf(myf, 'dU%d/U%d     %13.6e\n', i, i, deltaU(i,1));
+        end
+
+        theta(1:nPoint-nSW,1)=theta(1:nPoint-nSW,1) - deltatheta;
+        U(1:nPQ,1)=U(1:nPQ,1) - deltaU .* U(1:nPQ,1) ;
+        %ç¬¬xæ¬¡è¿­ä»£çš„èŠ‚ç‚¹ç›¸è§’delta(å¼§åº¦ä¸ºå•ä½ï¼‰å’Œç”µå‹U
+        fprintf(myf, '\n');
+        fprintf(myf, '-------------The node phase Delta (radian unit) and voltage U of the %d iteration----------\n', count);
+        for i=1: length(deltatheta)
+            fprintf(myf, 'ang%d   %10.6f\n', i, theta(i,1));
+        end
+        for i=1: length(deltaU)
+            fprintf(myf, 'U%d   %12.6f\n', i, U(i,1));
+        end
+
+        if (max(abs(deltatheta))<eps1)&&(max(abs(deltaU))<eps2)
+            break;
+        end
+    end
+
+    [bus_new_result, line_result] = calculate_result (Y, bus, line);
+
     fprintf(myf, '\n');
-    fprintf(myf, '-------------µÚ%d´Îµü´úµÄ¹¦ÂÊÆ«²îdPºÍdQ----------\n', count);
-    for i=1: length(deltaP)
-        fprintf(myf, 'dP%d   %13.6e\n', i, deltaP(i,1));
+    %ç‰›é¡¿ï¼æ‹‰å¤«é€Šæ³•æ½®æµè®¡ç®—ç»“æœ
+    fprintf(myf, '---------------The results of the Newton LV flow calculation----------\n');
+    %èŠ‚ç‚¹è®¡ç®—ç»“æœ
+    fprintf(myf, 'Node calculation results: \n');
+    fprintf(myf_graph, 'Node calculation results: \n');
+    %èŠ‚ç‚¹   èŠ‚ç‚¹ç”µå‹    èŠ‚ç‚¹ç›¸è§’ï¼ˆè§’åº¦ï¼‰    èŠ‚ç‚¹æ³¨å…¥åŠŸç‡    èŠ‚ç‚¹ç±»å‹
+    fprintf(myf, 'Node   Node voltage   Angle(degree)   Node injection power    Type\n');
+    fprintf(myf_graph, 'Node   Node voltage   Angle(degree)   Node injection power    Type\n');
+
+    [count_i, count_j] = size(bus_new_result);
+    for i=1:count_i
+        fprintf(myf, ' %d  ', bus_new_result(i,1));
+        fprintf(myf_graph, '%d\t', bus_new_result(i,1));
+        for k=2:3
+            fprintf(myf, '%10.6f  ', bus_new_result(i,k));
+            fprintf(myf, '   ');
+            fprintf(myf_graph, '%10.6f\t', bus_new_result(i,k));
+        end
+        fprintf(myf, '%9.6f+j%10.6f\t', bus_new_result(i,4), bus_new_result(i,5));
+        fprintf(myf, '%d', bus_new_result(i,6));
+        fprintf(myf, '\n');
+        fprintf(myf_graph, '%9.6f+j%10.6f\t', bus_new_result(i,4), bus_new_result(i,5));
+        fprintf(myf_graph, '%d', bus_new_result(i,6));
+        fprintf(myf_graph, '\n');
     end
-    for i=1: length(deltaQ)
-        fprintf(myf, 'dQ%d   %13.6e\n', i, deltaQ(i,1));
-    end
-    
-    deltaPQ=[deltaP;deltaQ];
-    deltaUtheta = J^(-1)*deltaPQ;
-    
-    deltatheta = deltaUtheta(1:nPoint-nSW,:);
-    deltaU = deltaUtheta(nPoint:nPoint+nPQ-nSW,:);
-    
+
     fprintf(myf, '\n');
-    fprintf(myf, '-------------µÚ%d´Îµü´úµÄ½ÚµãÏà½ÇºÍµçÑ¹µÄÆ«²îdx----------\n', count);
-    for i=1: length(deltatheta)
-        fprintf(myf, 'dang%d   %13.6e\n', i, deltatheta(i,1));
+    %çº¿è·¯è®¡ç®—ç»“æœ
+    fprintf(myf, 'Line calculation results: \n');
+    fprintf(myf_graph, 'Line calculation results: \n');
+    %èŠ‚ç‚¹I    èŠ‚ç‚¹J          çº¿è·¯åŠŸç‡S(I,J)         çº¿è·¯åŠŸç‡S(J,I)         çº¿è·¯æŸè€—dS(I,J)
+    fprintf(myf, 'Node I   Node J    Line power S(I, J)    Line power S(J, I)    Line loss dS(I, J)\n');
+    fprintf(myf_graph, 'Node I   Node J    Line power S(I, J)    Line power S(J, I)    Line loss dS(I, J)\n');
+    [count_i, count_j] = size(line_result);
+    for i=1:count_i
+        fprintf(myf, ' ');
+        fprintf(myf, '%d', line_result(i,1));
+        fprintf(myf, '         ');
+        fprintf(myf, '%d', line_result(i,2));
+        fprintf(myf, '         ');
+        fprintf(myf, '%9.6f+j%10.6f', real(line_result(i,3)), imag(line_result(i,3)));
+        fprintf(myf, '  ');
+        fprintf(myf, '%9.6f+j%10.6f', real(line_result(i,4)), imag(line_result(i,4)));
+        fprintf(myf, '  ');
+        fprintf(myf, '%9.6f+j%10.6f', real(line_result(i,5)), imag(line_result(i,5)));
+        fprintf(myf, ' \n');
+
+
+        fprintf(myf_graph, '%d\t', line_result(i,1));
+        fprintf(myf_graph, '%d\t', line_result(i,2));
+        fprintf(myf_graph, '%9.6f+j%10.6f\t', real(line_result(i,3)), imag(line_result(i,3)));
+        fprintf(myf_graph, '%9.6f+j%10.6f\t', real(line_result(i,4)), imag(line_result(i,4)));
+        fprintf(myf_graph, '%9.6f+j%10.6f', real(line_result(i,5)), imag(line_result(i,5)));
+        fprintf(myf_graph, '\n');
     end
-    for i=1: length(deltaU)
-        fprintf(myf, 'dU%d/U%d     %13.6e\n', i, i, deltaU(i,1));
-    end
-    
-    theta(1:nPoint-nSW,1)=theta(1:nPoint-nSW,1) - deltatheta;
-    U(1:nPQ,1)=U(1:nPQ,1) - deltaU .* U(1:nPQ,1) ;
-    
-    fprintf(myf, '\n');
-    fprintf(myf, '-------------µÚ%d´Îµü´úµÄ½ÚµãÏà½Çdelta(»¡¶ÈÎªµ¥Î»£©ºÍµçÑ¹U----------\n', count);
-    for i=1: length(deltatheta)
-        fprintf(myf, 'ang%d   %10.6f\n', i, theta(i,1));
-    end
-    for i=1: length(deltaU)
-        fprintf(myf, 'U%d   %12.6f\n', i, U(i,1));
-    end
-    
-    if (max(abs(deltatheta))<eps1)&&(max(abs(deltaU))<eps2)
-        break;
-    end
+    t=toc;
+    fprintf(myf, 'Time for method: \n');
+    fprintf(myf, num2str(t));
+    fprintf(myf_graph, 'Time for method: \n');
+    fprintf(myf_graph, num2str(t));
+    fclose(myf);
+    fclose(myf_graph);
+   
 end
-
-[bus_new_result, line_result] = calculate_result (Y, bus, line);
-
-fprintf(myf, '\n');
-fprintf(myf, '---------------Å£¶Ù£­À­·òÑ··¨³±Á÷¼ÆËã½á¹û----------\n');
-fprintf(myf, ' ½Úµã¼ÆËã½á¹û£º\n');
-fprintf(myf, '½Úµã   ½ÚµãµçÑ¹    ½ÚµãÏà½Ç£¨½Ç¶È£©    ½Úµã×¢Èë¹¦ÂÊ\n');
-
-[count_i, count_j] = size(bus_new_result);
-for i=1:count_i
-    fprintf(myf, ' %d  ', bus_new_result(i,1));
-    for k=2:3
-        fprintf(myf, '%10.6f  ', bus_new_result(i,k));
-        fprintf(myf, '   ');
-    end
-    fprintf(myf, '%9.6f+j%10.6f ', bus_new_result(i,4), bus_new_result(i,5));
-    fprintf(myf, '\n');
-end
-
-fprintf(myf, '\n');
-fprintf(myf, ' ÏßÂ·¼ÆËã½á¹û£º\n');
-fprintf(myf, '½ÚµãI    ½ÚµãJ          ÏßÂ·¹¦ÂÊS(I,J)         ÏßÂ·¹¦ÂÊS(J,I)         ÏßÂ·ËğºÄdS(I,J)\n');
-[count_i, count_j] = size(line_result);
-for i=1:count_i
-    fprintf(myf, ' ');
-    fprintf(myf, '%d', line_result(i,1));
-    fprintf(myf, '         ');
-    fprintf(myf, '%d', line_result(i,2));
-    fprintf(myf, '         ');
-    fprintf(myf, '%9.6f+j%10.6f', real(line_result(i,3)), imag(line_result(i,3)));
-    fprintf(myf, '  ');
-    fprintf(myf, '%9.6f+j%10.6f', real(line_result(i,4)), imag(line_result(i,4)));
-    fprintf(myf, '  ');
-    fprintf(myf, '%9.6f+j%10.6f', real(line_result(i,5)), imag(line_result(i,5)));
-    fprintf(myf, ' \n');
-end
-fclose(myf);

@@ -1,4 +1,7 @@
 function [bus_new_result, line_result] = calculate_result (Y, bus, line)
+    global nPQ;
+    global nPV;
+    global nSW;
     global U;
     global theta;
     global nodenum;
@@ -7,11 +10,11 @@ function [bus_new_result, line_result] = calculate_result (Y, bus, line)
     G=real(Y);
     B=imag(Y);
 
-    %¼ÆËã½Úµã¹¦ÂÊ¿ªÊ¼
+    %è®¡ç®—èŠ‚ç‚¹åŠŸç‡å¼€å§‹
     for  i=1:nPoint
         bus_result(i,1) = i;
         bus_result(i,2) = U(i,1);
-        bus_result(i,3) = rad2deg(theta(i,1));
+        bus_result(i,3) = (180/pi) * (theta(i,1));
 
         sum = 0;
         for k = 1:nPoint
@@ -25,7 +28,18 @@ function [bus_new_result, line_result] = calculate_result (Y, bus, line)
         end
         bus_result(i,5) = sum;
     end
-    %»Ö¸´½Úµã±àºÅ¿ªÊ¼
+    
+    for  i=1:nPQ
+        bus_result(i,6) = 1;
+    end
+    for i=nPQ + 1:nPQ + nPV
+        bus_result(i,6) = 2;
+    end
+    for i=nPQ + nPV + 1:nPoint
+        bus_result(i,6) = 3;
+    end
+    
+    %æ¢å¤èŠ‚ç‚¹ç¼–å·å¼€å§‹
     [nb,mb]=size(bus_result);
     for i=1:nb
         for k=1:nb
@@ -43,12 +57,12 @@ function [bus_new_result, line_result] = calculate_result (Y, bus, line)
             end
         end
     end
-    %»Ö¸´½Úµã±àºÅ½áÊø
+    %æ¢å¤èŠ‚ç‚¹ç¼–å·ç»“æŸ
 
-    %¼ÆËãÏßÂ·¹¦ÂÊ¿ªÊ¼
+    %è®¡ç®—çº¿è·¯åŠŸç‡å¼€å§‹
     [nl,ml]=size(line);
     for k=1:nl
-        I=line(k,1);                       %¶ÁÈëÏßÂ·²ÎÊı
+        I=line(k,1);                       %è¯»å…¥çº¿è·¯å‚æ•°
         J=line(k,2);
         Zt=line(k,3)+j*line(k,4);
         Yt=1/Zt;
@@ -61,19 +75,19 @@ function [bus_new_result, line_result] = calculate_result (Y, bus, line)
         sij=0;
         sji=0;
 
-        if (K==0)&&(J~=0)                 % ÆÕÍ¨ÏßÂ·: K=0,J~=0;
+        if (K==0)&&(J~=0)                 % æ™®é€šçº¿è·¯: K=0,J~=0;
             sij = U(I,1)^2 * (conj(Yt) + conj(Ym)) - U(I,1)*exp(j*theta(I,1)) * conj(U(J,1)*exp(j*theta(J,1))) * conj(Yt);
             sji = U(J,1)^2 * (conj(Yt) + conj(Ym)) - U(J,1)*exp(j*theta(J,1)) * conj(U(I,1)*exp(j*theta(I,1))) * conj(Yt);
         end
-        if (K==0)&&(J==0)               % ¶ÔµØÖ§Â·: K=0,J=0,R=X=0;
+        if (K==0)&&(J==0)               % å¯¹åœ°æ”¯è·¯: K=0,J=0,R=X=0;
             sij = U(I,1)^2 * conj(Ym);
             sji = -U(I,1)^2 * conj(Ym);
         end
-        % K<0 ±äÑ¹Æ÷ÏßÂ·: ZtºÍYmÎªÕÛËãµ½K²àµÄÖµ,KÔÚi²à
+        % K<0 å˜å‹å™¨çº¿è·¯: Ztå’ŒYmä¸ºæŠ˜ç®—åˆ°Kä¾§çš„å€¼,Kåœ¨iä¾§
         if K<0
             K=-1/K;
         end
-        % K>0 ±äÑ¹Æ÷Ö§Â·: ZtºÍYmÎªÕÛËãµ½i²àµÄÖµ,KÔÚj²à
+        % K>0 å˜å‹å™¨æ”¯è·¯: Ztå’ŒYmä¸ºæŠ˜ç®—åˆ°iä¾§çš„å€¼,Kåœ¨jä¾§
         if (K~=0)
             sij = U(I,1)^2 * (conj(Yt) + conj(Ym)) - U(I,1)*exp(j*theta(I,1)) * conj(U(J,1)*exp(j*theta(J,1))) * conj(Yt) / K;
             sji = U(J,1)^2 * (conj(Yt) / K / K) - U(J,1)*exp(j*theta(J,1)) * conj(U(I,1)*exp(j*theta(I,1))) * conj(Yt) / K;
@@ -82,7 +96,7 @@ function [bus_new_result, line_result] = calculate_result (Y, bus, line)
         line_result(k,4) = sji;
         line_result(k,5) = sij + sji;
     end
-    %»Ö¸´ÏßÂ·±àºÅ¿ªÊ¼
+    %æ¢å¤çº¿è·¯ç¼–å·å¼€å§‹
     [nl,ml]=size(line_result);
     for i=1:nl
         for j_count=1:2
@@ -94,7 +108,7 @@ function [bus_new_result, line_result] = calculate_result (Y, bus, line)
             end
         end
     end
-    %»Ö¸´ÏßÂ·±àºÅ½áÊø
-    %¼ÆËãÏßÂ·¹¦ÂÊ½áÊø
+    %æ¢å¤çº¿è·¯ç¼–å·ç»“æŸ
+    %è®¡ç®—çº¿è·¯åŠŸç‡ç»“æŸ
 
 end

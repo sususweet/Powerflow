@@ -7,30 +7,31 @@ function Y = generateY(bus,line)
 % Output:    Y    - admittance matrix
     [nb,mb]=size(bus);
     [nl,ml]=size(line);
-
-    Y=zeros(nb,nb);         % ¶Ôµ¼ÄÉ¾ØÕó¸³³õÖµ0
+     
+    Y=zeros(nb,nb);         % å¯¹å¯¼çº³çŸ©é˜µèµ‹åˆå€¼0
+    Y = complex(Y, zeros(size(Y), class(Y)) );
     for k=1:nl
-        I=line(k,1);                       %¶ÁÈëÏßÂ·²ÎÊı
+        I=line(k,1);                       %è¯»å…¥çº¿è·¯å‚æ•°
         J=line(k,2);
         Zt=line(k,3)+j*line(k,4);
         Yt=1/Zt;
         Ym=line(k,5)+j*line(k,6);
         K=line(k,7);
 
-        if (K==0)&&(J~=0)                 % ÆÕÍ¨ÏßÂ·: K=0,J~=0;
+        if (K==0)&&(J~=0)                 % æ™®é€šçº¿è·¯: K=0,J~=0;
             Y(I,I)=Y(I,I)+Yt+Ym;
             Y(J,J)=Y(J,J)+Yt+Ym;
             Y(I,J)=Y(I,J)-Yt;
             Y(J,I)=Y(I,J);
         end
-        if (K==0)&&(J==0)               % ¶ÔµØÖ§Â·: K=0,J=0,R=X=0;
+        if (K==0)&&(J==0)               % å¯¹åœ°æ”¯è·¯: K=0,J=0,R=X=0;
             Y(I,I)=Y(I,I)+Ym;
         end
-        % K<0 ±äÑ¹Æ÷ÏßÂ·: ZtºÍYmÎªÕÛËãµ½K²àµÄÖµ,KÔÚi²à
+        % K<0 å˜å‹å™¨çº¿è·¯: Ztå’ŒYmä¸ºæŠ˜ç®—åˆ°Kä¾§çš„å€¼,Kåœ¨iä¾§
         if K<0
             K=-1/K;
         end
-        % K>0 ±äÑ¹Æ÷Ö§Â·: ZtºÍYmÎªÕÛËãµ½i²àµÄÖµ,KÔÚj²à
+        % K>0 å˜å‹å™¨æ”¯è·¯: Ztå’ŒYmä¸ºæŠ˜ç®—åˆ°iä¾§çš„å€¼,Kåœ¨jä¾§
         if (K~=0)
             Y(I,I)=Y(I,I)+Yt+Ym;
             Y(J,J)=Y(J,J)+Yt/K/K;

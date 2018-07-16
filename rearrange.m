@@ -1,6 +1,6 @@
 function [oribus, oriline] = rearrange(oribus, oriline)
-% REARRANGE: ¸ø½ÚµãÖØĞÂ±àºÅ£¬°´ÕÕPQ¡¢PV ºÍ SW Ë³Ğò½øĞĞ
-% ´Ë´¦ÏÔÊ¾ÏêÏ¸ËµÃ÷
+% REARRANGE: ç»™èŠ‚ç‚¹é‡æ–°ç¼–å·ï¼ŒæŒ‰ç…§PQã€PV å’Œ SW é¡ºåºè¿›è¡Œ
+% æ­¤å¤„æ˜¾ç¤ºè¯¦ç»†è¯´æ˜
     [nb,mb]=size(oribus);
     [nl,ml]=size(oriline);
     global nodenum;
@@ -11,7 +11,7 @@ function [oribus, oriline] = rearrange(oribus, oriline)
     nPV = 0;                 % number of PV bus counter
     nPQ = 0;                 % number of PQ bus counter
     
-    for i = 1:nb              % nbÎª×Ü½ÚµãÊı
+    for i = 1:nb              % nbä¸ºæ€»èŠ‚ç‚¹æ•°
         type= oribus(i,6);
         if type == 3
             nSW = nSW + 1;     % increment swing bus counter

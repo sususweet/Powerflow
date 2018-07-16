@@ -9,7 +9,7 @@ function J=form_jac(Y,bus)
     G=real(Y);
     B=imag(Y);
 
-    %¿ªÊ¼¼ÆËãÑÅ¿É±È¾ØÕó
+    %å¼€å§‹è®¡ç®—é›…å¯æ¯”çŸ©é˜µ
     for row=1:nPoint-nSW
         for col = 1:nPoint-nSW
                 if row == col
@@ -42,6 +42,6 @@ function J=form_jac(Y,bus)
                 end
         end
     end
-    %ÑÅ¿É±È¾ØÕó¼ÆËãÍê³É
+    %é›…å¯æ¯”çŸ©é˜µè®¡ç®—å®Œæˆ
     J=[H,N;J,L];
 end
