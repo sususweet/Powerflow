@@ -188,9 +188,17 @@ function Y = three_phase_short(dfile)
     % 支路三相短路
     if(dis~=0)&&(dis~=1)&&(faultI*faultJ~=0)
        % 前两列分别表示故障支路的首末端节点编号
-       Ib(nl+1,1) = faultI;
-       Ib(nl+1,2) = faultJ;
-       Ib(nl+1,3) = U(faultI)*Y(faultI,faultJ)/dis + U(faultJ)*Y(faultI,faultJ)/(1-dis);
+       for i = 1:nb
+           if faultI == nodenum(i,2)
+               real_I = nodenum(i,1);
+           end
+           if faultJ == nodenum(i,2)
+               real_J = nodenum(i,1);
+           end
+       end
+       Ib(nl+1,1) = real_I;
+       Ib(nl+1,2) = real_J;
+       Ib(nl+1,3) = U(real_I)*Y(real_I,real_J)/dis + U(real_J)*Y(real_I,real_J)/(1-dis);
        Ib(nl+1,4) = abs(Ib(nl+1,3));
     end
 

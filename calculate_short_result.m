@@ -40,8 +40,23 @@ function [bus_new_result, line_result] = calculate_short_result (bus, Y, U, Ib, 
             end
         end
     end
-
     %恢复节点编号结束
+
+    %恢复线路编号开始
+    [nl,ml]=size(Ib);
+   
+    for i=1:nl
+        for j_count=1:2
+            for k=1:nb
+                if Ib(i,j_count)==nodenum(k,1)
+                    Ib(i,j_count)=nodenum(k,2);
+                    break
+                end
+            end
+        end
+    end
+    %恢复线路编号结束
+    
     [nl,ml]=size(Ib);
     faultI=fault(1,1);
     faultJ=fault(1,2);
@@ -57,21 +72,7 @@ function [bus_new_result, line_result] = calculate_short_result (bus, Y, U, Ib, 
         k = k+1;
     end
     line_result(k,:) = Ib(nl,:);
-    Ib = line_result;
+   % Ib = line_result;
     
-    %恢复线路编号开始
-    [nl,ml]=size(Ib);
-   
-    for i=1:nl
-        for j_count=1:2
-            for k=1:nb
-                if Ib(i,j_count)==nodenum(k,1)
-                    Ib(i,j_count)=nodenum(k,2);
-                    break
-                end
-            end
-        end
-    end
-    %恢复线路编号结束
-    line_result = Ib;
+    %line_result = Ib;
 end

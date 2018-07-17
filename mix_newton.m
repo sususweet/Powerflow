@@ -35,6 +35,9 @@ function Y = mix_newton(dfile)
     filename_graph = ['./result/output_graph_', dfile, '.dat'];
     myf_graph=fopen(filename_graph,'w','n','UTF-8');
 
+    filename_iteration = ['./result/output_iteration_', dfile, '.dat'];
+    myf_iteration=fopen(filename_iteration,'w','n','UTF-8');
+    
     Y= generateY(bus,line);
     %输出节点导纳矩阵
     fprintf(myf, '--------------Node Admittance Matrix----------\n');
@@ -58,6 +61,9 @@ function Y = mix_newton(dfile)
     end
 
     count = 0;
+    fprintf(myf_iteration, '-------------The node phase angle and voltage deviation dX of the iteration----------\n');
+    fprintf(myf_iteration, 'Iteration count      dang      dU\n');
+
     % 高斯-塞德尔法初值计算
     U_new=zeros(nPoint,1);
     theta_new=zeros(nPoint,1);
@@ -164,7 +170,7 @@ function Y = mix_newton(dfile)
 
         %第x次迭代的功率偏差dP和dQ
         fprintf(myf, '\n');
-        fprintf(myf, '-------------The power deviation dP and dQ of the%d iteration----------\n', count);
+        fprintf(myf, '-------------The power deviation dP and dQ of the %d iteration----------\n', count);
         for i=1: length(deltaP)
             fprintf(myf, 'dP%d   %13.6e\n', i, deltaP(i,1));
         end
@@ -187,6 +193,7 @@ function Y = mix_newton(dfile)
         for i=1: length(deltaU)
             fprintf(myf, 'dU%d/U%d     %13.6e\n', i, i, deltaU(i,1));
         end
+        fprintf(myf_iteration, '%d\t%13.6e\t%13.6e\n', count, max(abs(deltatheta)), max(abs(deltaU .* U(1:nPQ,1))));
 
         theta(1:nPoint-nSW,1)=theta(1:nPoint-nSW,1) - deltatheta;
         U(1:nPQ,1)=U(1:nPQ,1) - deltaU .* U(1:nPQ,1) ;
@@ -270,5 +277,5 @@ function Y = mix_newton(dfile)
     fprintf(myf_graph, num2str(t));
     fclose(myf);
     fclose(myf_graph);
-
+    fclose(myf_iteration);
 end
