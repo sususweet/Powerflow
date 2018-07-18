@@ -1,0 +1,8 @@
+-------------The node phase angle and voltage deviation dX of the iteration----------
+Iteration count      dang      dU
+1	 1.838767e-01	 1.304102e-01
+2	 4.269380e-02	 5.565597e-02
+3	 3.723951e-03	 3.185106e-03
+4	 1.557247e-05	 1.074878e-05
+5	 2.025371e-10	 1.292014e-10
+6	 1.389060e-15	 1.292148e-15
