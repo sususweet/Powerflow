@@ -90,4 +90,4 @@ Node I   Node J    Line power S(I, J)    Line power S(J, I)    Line loss dS(I, J
 38	29	 8.300000+j  0.020121	-8.247696+j  0.999797	 0.052304+j  1.019918
 20	19	-1.744312+j -0.146630	 1.746473+j  0.189226	 0.002161+j  0.042596
 Time for method: 
-0.873
+1.3004
